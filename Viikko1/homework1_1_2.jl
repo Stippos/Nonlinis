@@ -56,7 +56,6 @@ m = Model(solver = IpoptSolver())
 @variable(m, q1[i in V] >= 0)
 @variable(m, q2[i in V] >= 0)
 
-
 ## Cost and revenue
 #@expression(m, revenue, sum((100 * (2 - q1[i] / N[i].ubq1) + 150 * (2 - N[i].q2 / N[i].ubq2)) * x[a] for i in T, a in A if a.j == i))
 

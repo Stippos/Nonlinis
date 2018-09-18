@@ -60,7 +60,7 @@ m = Model(solver = IpoptSolver())
 ## Cost and revenue
 #@expression(m, revenue, sum((100 * (2 - q1[i] / N[i].ubq1) + 150 * (2 - N[i].q2 / N[i].ubq2)) * x[a] for i in T, a in A if a.j == i))
 
-@expression(m, revenue, 100*(2 - (q1["t1"] / N["t1"].ubq1)) * (x[A[17]] + x[A[18]]) + 150*(2 - (q1["t1"] / N["t2"].ubq1)) * (x[A[19]] + x[A[20]]))
+@expression(m, revenue, 100*(2 - (q1["t1"] / N["t1"].ubq1)) * (x[A[17]] + x[A[18]]) + (x[A[19]] + x[A[20]]) * 150*(2 - (q1["t2"] / N["t2"].ubq1)))
 
 @objective(m, Max, revenue)
 
@@ -89,6 +89,9 @@ m = Model(solver = IpoptSolver())
 
 @constraint(m, [s in S], N[s].lbq1 <= q1[s] <= N[s].ubq1)
 @constraint(m, [s in S], N[s].lbq2 <= q2[s] <= N[s].ubq2)
+
+#@constraint(m, [p in P], q1[p] == N[p].q1)
+#@constraint(m, [p in P], q2[p] == N[p].q2)
 
 println(m)
 
