@@ -12,7 +12,7 @@ plot(f, -1/7, 0)
 ## Tehtävä 2
 Pkg.add("PyPlot")
 ENV["PYTHON"]=""
-Pkg.add("PyCall")
+Pkg.build("PyCall")
 using PyCall
 using PyPlot
 
@@ -22,4 +22,6 @@ x = -2:0.01:2
 y = x'
 z = g.(x, y)
 
-surf(x, y, z)
+@pyimport matplotlib.cm as cm
+
+surf(x, y, z, cm = cm.coolwarm)
