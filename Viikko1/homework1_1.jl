@@ -39,16 +39,7 @@ N = Node.(uq1, uq2, uq1, lq1, uq2, lq2, flbound, fubound)
 
 N = Dict(V[i] => N[i] for i = 1:size(V,1))
 
-uppper_q_bound_11 = 1.5
-uppper_q_bound_12 = 3.5
-uppper_q_bound_21 = 34
-uppper_q_bound_22 = 40
-
-
-N["p1"].q1 = 50
-N["p1"].q2 = 50
-N["p2"].q1 = 50
-N["p2"].q2 = 50
+##
 
 m = Model(solver = IpoptSolver())
 
@@ -56,11 +47,25 @@ m = Model(solver = IpoptSolver())
 @variable(m, q1[i in V] >= 0)
 @variable(m, q2[i in V] >= 0)
 
+#setvalue(q1["p1"], 1)
+#setvalue(q1["p2"], 33)
+#setvalue(q2["p1"], 1)
+#setvalue(q2["p2"], 33)
 
-## Cost and revenue
+setvalue(q1["p1"], 0)
+setvalue(q1["p2"], 0)
+setvalue(q2["p1"], 0)
+setvalue(q2["p2"], 0)
+
+
+
 #@expression(m, revenue, sum((100 * (2 - q1[i] / N[i].ubq1) + 150 * (2 - N[i].q2 / N[i].ubq2)) * x[a] for i in T, a in A if a.j == i))
 
-@expression(m, revenue, 100*(2 - (q1["t1"] / N["t1"].ubq1)) * (x[A[17]] + x[A[18]]) + (x[A[19]] + x[A[20]]) * 150*(2 - (q1["t2"] / N["t2"].ubq1)))
+@expression(m, c_1, 100*(2 - (q1["t1"] / N["t1"].ubq1)))
+@expression(m, c_2, 150*(2 - (q1["t2"] / N["t2"].ubq1)))
+
+
+@expression(m, revenue, c_1 * (sum(x[a] for a in A if a.j == "t1")) + c_2*((sum(x[a] for a in A if a.j == "t2"))))
 
 @objective(m, Max, revenue)
 
@@ -101,25 +106,27 @@ println(status)
 
 ## Get objecive + solution
 obj = getobjectivevalue(m)
-x   = getvalue(x)
-q1   = getvalue(q1)
-q2   = getvalue(q2)
+x_value   = getvalue(x)
+q1_value   = getvalue(q1)
+q2_value   = getvalue(q2)
 
 println("\n\nSolution cost: ", round(obj,4))
 println("\nFlows: \n")
 ## Arcs
 for a in A
-    println("x($(a.i),$(a.j)) = ", round(x[a], 4))
+    println("x($(a.i),$(a.j)) = ", round(x_value[a], 4))
 end
 
 println("\nProperty values:\n")
 ## Property values
 for p in P
-    println("q1[$p] = ", round(q1[p], 4))
-    println("q2[$p] = ", round(q2[p], 4))
+    println("q1[$p] = ", round(q1_value[p], 4))
+    println("q2[$p] = ", round(q2_value[p], 4))
 end
 for t in T
-    println("q1[$t] = ", round(q1[t], 4))
-    println("q2[$t] = ", round(q2[t], 4))
+    println("q1[$t] = ", round(q1_value[t], 4))
+    println("q2[$t] = ", round(q2_value[t], 4))
 end
 println()
+
+##
