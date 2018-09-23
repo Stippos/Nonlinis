@@ -101,3 +101,5 @@ plot(σ, μ, "k.", markersize = 12)
 xlabel("std deviation")
 ylabel("expected return")
 grid("on"); tight_layout()
+
+print(x)
