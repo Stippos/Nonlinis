@@ -10,6 +10,7 @@ type Arc
 end
 
 # type for node properties
+# added a few varianbels for the flow and quality bounds
 type Node
     q1::Float64  # Propery value (sulfur %)
     q2::Float64
@@ -21,6 +22,7 @@ type Node
     fub::Float64  # Upper flow bound
 end
 
+#CSV library doesn't work on my machine so I defined the nodes by hand
 V = ["s1", "s2", "s3", "s4","s5","s6","s7","s8","s9","s10","s11","s12","s13","s14","s15","s16","p1", "p2", "t1", "t2"]
 S = ["s1", "s2", "s3", "s4","s5","s6","s7","s8","s9","s10","s11","s12","s13","s14","s15","s16"]
 P = ["p1", "p2"]
@@ -34,18 +36,23 @@ uq1 = [5.84, 5.4, 0.24, 2.01, 5.85, 5.38, 0.26, 2.04, 0.64, 0.57, 0.02, 0.14, 0.
 lq2 = [43.7, 36.8, 12.8, 15.4, 47.3, 39.2, 13.1, 15.9, 39.9, 38.2, 13.5, 16.3, 38.1, 34.1, 13.2, 15.5, 0, 0, 30, 32]
 uq2 = [43.7, 36.8, 12.8, 15.4, 47.3, 39.2, 13.1, 15.9, 39.9, 38.2, 13.5, 16.3, 38.1, 34.1, 13.2, 15.5, 100, 100, 34, 40]
 
+#make arcs and nodes
 A = Arc.(inode, jnode)
 N = Node.(uq1, uq2, uq1, lq1, uq2, lq2, flbound, fubound)
 
+#save the nodes in a dict for ease of handling
 N = Dict(V[i] => N[i] for i = 1:size(V,1))
 
 ##
 
 m = Model(solver = IpoptSolver())
 
+#decision variables are the flows and the quality variables in different nodes
 @variable(m, x[A] >= 0)       # Arc flows
 @variable(m, q1[i in V] >= 0)
 @variable(m, q2[i in V] >= 0)
+
+#set the initial values for the pooling node qualities for different local optimums
 
 #setvalue(q1["p1"], 1)
 #setvalue(q1["p2"], 33)
@@ -61,31 +68,34 @@ setvalue(q2["p2"], 0)
 
 #@expression(m, revenue, sum((100 * (2 - q1[i] / N[i].ubq1) + 150 * (2 - N[i].q2 / N[i].ubq2)) * x[a] for i in T, a in A if a.j == i))
 
+#the expressions for costs in different end nodes
 @expression(m, c_1, 100*(2 - (q1["t1"] / N["t1"].ubq1)))
 @expression(m, c_2, 150*(2 - (q1["t2"] / N["t2"].ubq1)))
 
-
+#the revenue from the costs and the flows to terminal nodes
 @expression(m, revenue, c_1 * (sum(x[a] for a in A if a.j == "t1")) + c_2*((sum(x[a] for a in A if a.j == "t2"))))
 
+#maximize the revenue
 @objective(m, Max, revenue)
 
+#the flows to pools must equal flows away from pools
 @constraint(m, [p in P], sum(x[a] for a in A if a.j == p) == sum(x[a] for a in A if a.i == p))
+
+#the flow  in the  nodes must be within limits
 @constraint(m, [t in T], N[t].flb <= sum(x[a] for a in A if a.j == t) <= N[t].fub)
-
 @constraint(m, [p in P], N[p].flb <= sum(x[a] for a in A if a.j == p) <= N[p].fub)
-
 @constraint(m, [a in A], N[a.i].flb <= x[a] <= N[a.i].fub)
-
 @constraint(m, [s in S], N[s].flb <= sum(x[a] for a in A if a.i == s) <= N[s].fub)
 
+#the amount of quality properties coming into pools must equal the outgoing amount of quality properties
 @constraint(m, [p in P], sum(q1[a.i]*x[a] for a in A if a.j == p) == q1[p]*sum(x[a] for a in A if a.i == p))
 @constraint(m, [p in P], sum(q2[a.i]*x[a] for a in A if a.j == p) == q2[p]*sum(x[a] for a in A if a.i == p))
 
-# Sulfur balances at T nodes
+#the same thing in for the flows that go in the terminal nodes
 @constraint(m, [t in T], sum(q1[a.i]*x[a] for a in A if a.j == t) == q1[t]*sum(x[a] for a in A if a.j == t))
 @constraint(m, [t in T], sum(q2[a.i]*x[a] for a in A if a.j == t) == q2[t]*sum(x[a] for a in A if a.j == t))
 
-# Sulfur upper bounds at T nodes
+#the qualities must be within limits in all nodes
 @constraint(m, [t in T], N[t].lbq1 <= q1[t] <= N[t].ubq1)
 @constraint(m, [t in T], N[t].lbq2 <= q2[t] <= N[t].ubq2)
 

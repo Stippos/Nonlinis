@@ -21,6 +21,8 @@ type Node
     fub::Float64  # Upper flow bound
 end
 
+
+#here we have just removed the pooling nodes and their bounds and added arcs from the starting nodes to the terminal nodes
 V = ["s1", "s2", "s3", "s4","s5","s6","s7","s8","s9","s10","s11","s12","s13","s14","s15","s16", "t1", "t2"]
 S = ["s1", "s2", "s3", "s4","s5","s6","s7","s8","s9","s10","s11","s12","s13","s14","s15","s16"]
 T = ["t1", "t2"]
@@ -40,6 +42,8 @@ N = Dict(V[i] => N[i] for i = 1:size(V,1))
 
 ##
 
+#The model is otherwise the same but we have just removed all the constraints for pooling nodes.
+#The model was properly defined before so no additional modifications had to be made
 m = Model(solver = IpoptSolver())
 
 @variable(m, x[A] >= 0)       # Arc flows
@@ -58,8 +62,7 @@ m = Model(solver = IpoptSolver())
 
 
 
-#@expression(m, revenue, sum((100 * (2 - q1[i] / N[i].ubq1) + 150 * (2 - N[i].q2 / N[i].ubq2)) * x[a] for i in T, a in A if a.j == i))
-
+#this form of the objective function is older than the one in 1.1 so it is a bit more uggly
 @expression(m, revenue, 100*(2 - (q1["t1"] / N["t1"].ubq1)) * (sum(x[a] for a in A if a.j == "t1")) + ((sum(x[a] for a in A if a.j == "t2")) * 150*(2 - (q1["t2"] / N["t2"].ubq1))))
 
 @objective(m, Max, revenue)
@@ -81,8 +84,6 @@ m = Model(solver = IpoptSolver())
 @constraint(m, [s in S], N[s].lbq1 <= q1[s] <= N[s].ubq1)
 @constraint(m, [s in S], N[s].lbq2 <= q2[s] <= N[s].ubq2)
 
-#@constraint(m, [p in P], q1[p] == N[p].q1)
-#@constraint(m, [p in P], q2[p] == N[p].q2)
 
 println(m)
 

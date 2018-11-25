@@ -54,7 +54,7 @@ function generate_instances(k::Int, n::Int, δ::StepRangeLen)
 end
 
 srand(1)                 # Control randomness
-k  = 100                 # Number of intances to generate
+k  = 10                 # Number of intances to generate
 n  = 150                 # Dimension of n x n PD matrix A
 δ1 = range(.05,.05, k)   # Moderate condition numbers for matrices A
 δ2 = range(.01,.01, k)   # Larger condition numbers for matrices A
@@ -116,13 +116,14 @@ tps = zeros(np,ns,2) # Computing times for each problem/method.
                      # tps[p,s,j] = Inf if method s fails to
                      # solve problem p.
 
-N   = 10000          # Number of iterations
+N   = 1000          # Number of iterations
 ϵ   = 1e-05          # Tolerance
 x0  = ones(n)        # Starting point
 
 ## Go through all instances for both sets of data
 for j = 1:2
     for i = 1:k
+        println(i)
         g1(x) = f1(x,i)
         g2(x) = f2(x,i)
         ## NOTE: Implement the functions in the "solution_methods.jl"
