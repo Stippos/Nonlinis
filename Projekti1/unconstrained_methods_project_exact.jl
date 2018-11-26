@@ -4,7 +4,10 @@ pyplot()
 include("line_searches.jl");
 
 # function to be optimised
-f(x) = 0.26 * (x[1]^2 + x[2]^2) - 0.48 * x[1] * x[2]
+#f(x) = 0.26 * (x[1]^2 + x[2]^2) - 0.48 * x[1] * x[2] #uncommet for A
+#f(x) = exp(x[1] + 3*x[2] - 0.1) + exp(x[1] - 3*x[2] - 0.1) + exp(-x[1] - 0.1)
+f(x) = (x[1]^2 + x[2] - 11)^2 + (x[1] + x[2]^2 - 7)^2 #uncomment for C
+
 
 # Calculating first- and second-order derivatives
 ∇(f,x)  = ForwardDiff.gradient(f, x);
@@ -17,24 +20,40 @@ y = linspace(-10,10,n);
 z = [f([x[i],y[j]]) for j = 1:n, i = 1:n];
 
 contour(x,y,z,
-        levels = [3.6, 4, 5, 6 , 8, 10, 15, 20, 30],
-        xaxis = (L"$x_1$", (-5,22)),
-        yaxis = (L"$x_2$", (-10,10)),
+        levels = [0, 0.1, 0.3, 0.5 , 1, 2, 3, 4, 6],
+        xaxis = (L"$x_1$", (-1,8)),
+        yaxis = (L"$x_2$", (-1,6)),
         clims = (0,20),
         clabels = true,
         aspect_ratio = :equal)
 
-gui()
+contour(x,y,z,
+        levels = [2.6, 3, 4, 5 , 6, 7, 8, 10, 12],
+        xaxis = (L"$x_1$", (-1,3)),
+        yaxis = (L"$x_2$", (-1,2)),
+        clims = (0,20),
+        clabels = true,
+        aspect_ratio = :equal)
 
-# The optimal value of x:
-xopt = [-(5/6)*(-3 + 2*log(2) - 2*log(5)); 0]
-fopt = f(xopt)
+contour(x,y,z,
+        levels = [1, 5, 20, 40,70 , 100, 120,150, 170, 200],
+        xaxis = (L"$x_1$", (-4,4)),
+        yaxis = (L"$x_2$", (-4,4)),
+        clims = (0,200),
+        clabels = true,
+        aspect_ratio = :equal)
+
+
+gui()
 
 
 #Common inititalisation parameters
 M = 10001 # 10000 iter + start
 ϵ = 1e-6 # tolerance
-xstart = [8;-3] # starting point
+#xstart = [7;3] #uncomment for A
+#xstart = [1;1.5] #uncomment for B
+xstart = [-2;1] #uncomment for C
+
 n = length(xstart) # dimension of the problem
 
 # This helper function allows uschanging the line search method used
@@ -51,48 +70,6 @@ function line_search(f, LS)
     end
     return λbar
 end
-
-
-
-# Method 1: coordinate descent
-
-xc = zeros(n,M) # store step history
-xc[:,1] = xstart # initial point
-k = 1; # counter
-
-println("Starting coordinate descent...")
-tini = time(); # Start stopwatch
-while k <= M-1
-    # stop criteria on the norm of the difference between 2 sucessive points
-    if   k > 1 && norm(xc[:,k] - xc[:,k-1]) < ϵ
-         xc = xc[:,1:k]
-         break
-    end
-    for j = 1:n
-        d = zeros(n) # setting search direction as dⱼ = 1.
-        d[j] = 1
-
-        ls(λ) = f(xc[:,k] + λ*d) # state line search (ls) function
-
-        λbar = golden_ratio(ls, -10, 10) # To be fully derivative independent, we use golden ratio
-                                         # method. Notice it requires λ ∈ R
-        xc[:,k+1] = xc[:,k] + λbar*d
-
-        # Uncomment to see progress of the algorithm
-        #println("iter=", k, " λ=",λbar, " xᵏ=",xc[:,k+1])
-
-        k = k+1
-    end
-end
-tend = time() - tini; # Stop stopwatch
-println("Coordinate descent converged.")
-println(" Total steps: ", k-1)
-println(" Total time (s): ", tend)
-println(" Sol. found: ", xc[:,k], "/ Opt. value: ", f(xc[:,k]), "\n")
-
-#Plotting progress gradient descent
-plot!( xc[1,:], xc[2,:],label = "Coordinate", marker=:circle)
-
 
 
 # Method 2: gradient descent
@@ -125,7 +102,7 @@ tend = time() - tini; # Stop stopwatch
 println("Gradient descent converged.")
 println(" Total steps: ", size(xg,2)-1)
 println(" Total time (s): ", tend)
-println(" Sol. found: ", xg[:,k], "/ Opt. value: ", f(xg[:,k]), "\n")
+println(" Sol. found: ", xg[:,end], "/ Opt. value: ", f(xg[:,end]), "\n")
 
 #Plotting progress gradient descent
 plot!( xg[1,:], xg[2,:],label = "Gradient", marker=:circle)
@@ -162,57 +139,10 @@ tend = time() - tini; # Stop stopwatch
 println("Newton's method converged.")
 println(" Total steps: ", size(xn,2)-1)
 println(" Total time (s): ", tend)
-println(" Sol. found: ", xn[:,k], "/ Opt. value: ", f(xn[:,k]), "\n")
+println(" Sol. found: ", xn[:,end], "/ Opt. value: ", f(xn[:,end]), "\n")
 
 #Plotting progress of Newton's method
 plot!(xn[1,:], xn[2,:],label = "Newton", marker=:circle)
-
-
-
-#Method 4: Conjugate gradient method
-
-xj = zeros(n,M)
-xj[:,1] = xstart
-α = 0
-d = -∇(f,xstart)
-k = 1
-
-println("Starting conjugate gradient method...")
-tini = time(); # Start stopwatch
-while k <= M-1
-    for j = 1:length(xstart) #n=2
-        #state line search (ls) function
-        ls(λ) = f(xj[:,k] + λ*d)
-
-        # Line search according to selected method
-        #λbar = line_search(ls, ARMIJO)
-        λbar = line_search(ls, EXACT)
-
-        xj[:,k+1] = xj[:,k] + λbar*d
-        # uncomment to see progress of the algorithm
-        #println("iter=", k, " λ=",λbar, " xᵏ=",xj[:,k+1])
-
-        #α-update following Fletcher-Reeves
-        α = norm(∇(f,xj[:,k+1]))^2/norm(∇(f,xj[:,k]))^2
-        d = -∇(f,xj[:,k+1]) + α*d
-        k = k+1
-    end
-    d = -∇(f,xj[:,k])
-    # stop criteria on the norm of ∇f(x)
-    if norm(d) < ϵ
-         xj = xj[:,1:k]
-         break
-    end
-end
-tend = time() - tini; # Stop stopwatch
-println("Conjugate gradient converged.")
-println(" Total steps: ", size(xj,2)-1)
-println(" Total time (s): ", tend)
-println(" Sol. found: ", xj[:,k], "/ Opt. value: ", f(xj[:,k]), "\n")
-
-#Plotting progress of conjugate gradient method
-plot!( xj[1,:], xj[2,:], label = "Conjugate", marker=:circle)
-
 
 
 #Method 5: Quasi-Newton method (BFGS)
@@ -252,24 +182,29 @@ tend = time() - tini; # Stop stopwatch
 println("Quasi-Newton (BFGS) converged.")
 println(" Total steps: ", size(xb,2)-1)
 println(" Total time (s): ", tend)
-println(" Sol. found: ", xb[:,k], "/ Opt. value: ", f(xb[:,k]), "\n")
+println(" Sol. found: ", xb[:,end], "/ Opt. value: ", f(xb[:,end]), "\n")
 
 plot!( xb[1,:], xb[2,:], label = "BFGS", marker=:circle)
 
 
-
-
+#savefig("C_paths_exact.pdf")
 # Comparing convergence between algorithms
-dist_xg = sqrt.(sum(( xg .- xopt).^2,1)');
-dist_xn = sqrt.(sum(( xn .- xopt).^2,1)');
-dist_xj = sqrt.(sum(( xj .- xopt).^2,1)');
-dist_xb = sqrt.(sum(( xb .- xopt).^2,1)');
+#dist_xg = sqrt.(sum(( xg .- [0, 0]).^2,1)');
+#dist_xn = sqrt.(sum(( xn .- [0, 0]).^2,1)');
+#dist_xb = sqrt.(sum(( xb .- [0, 0]).^2,1)');
+
+dist_xg = sqrt.(sum(( xg .- [-0.346574, 0]).^2,1)');
+dist_xn = sqrt.(sum(( xn .- [-0.346574, 0]).^2,1)');
+dist_xb = sqrt.(sum(( xb .- [-0.346574, 0]).^2,1)');
+
+dist_xg = sqrt.(sum(( xg .- [-0.346574, 0]).^2,1)');
+dist_xn = sqrt.(sum(( xn .- [-0.346574, 0]).^2,1)');
+dist_xb = sqrt.(sum(( xb .- [-0.346574, 0]).^2,1)');
 
 plot(dist_xg, yscale=:log10, label = "Gradient")
 plot!(dist_xn, yscale=:log10, label = "Newton")
-plot!(dist_xj, yscale=:log10, label = "Conjugate")
 plot!(dist_xb, yscale=:log10, label = "BFGS",
-    xaxis = ("iterations", (1,15)),
+    xaxis = ("iterations", (1,10)),
     yaxis = (L"$||x_k - \overline{x}||$", ( ϵ, 10)))
 
-# savefig("ALG_convergence.pdf")
+#savefig("B_convergence_exact.pdf")
