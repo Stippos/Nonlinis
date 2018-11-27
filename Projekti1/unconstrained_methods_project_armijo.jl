@@ -197,7 +197,7 @@ dist_xg = sqrt.(sum(( xg .- [-0.346574, 0]).^2,1)');
 dist_xn = sqrt.(sum(( xn .- [-0.346574, 0]).^2,1)');
 dist_xb = sqrt.(sum(( xb .- [-0.346574, 0]).^2,1)');
 
-dist_xg = sqrt.(sum(( xg .- [-3.77931, -3.28319]).^2,1)');
+dist_xg = sqrt.(sum(( xg .- [-2.80512, 3.13131]).^2,1)');
 dist_xn = sqrt.(sum(( xn .- [-3.77931, -3.28319]).^2,1)');
 dist_xb = sqrt.(sum(( xb .- [-3.77931, -3.28319]).^2,1)');
 
@@ -207,4 +207,4 @@ plot!(dist_xb, yscale=:log10, label = "BFGS",
     xaxis = ("iterations", (1,50)),
     yaxis = (L"$||x_k - \overline{x}||$", ( ϵ, 10)))
 
-#savefig("B_convergence_armijo.pdf")
+#savefig("C_convergence_armijo.pdf")
