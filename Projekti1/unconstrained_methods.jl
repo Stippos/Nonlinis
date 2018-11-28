@@ -244,7 +244,7 @@ for k = 1:M-1
     end
 
     # Update Gradient difference
-    q   = ∇(f, xb[:,k+1]) - ∇(f, xb[:,k])
+    q  = ∇(f, xb[:,k+1]) - ∇(f, xb[:,k])
     # Update Hessian approximation
     B = B + (q*q')/(q'*p) - (B*p*p'*B)/(p'*B*p)
 end

@@ -4,7 +4,7 @@ using ForwardDiff
 start = [-2, 1]
 
 g(x) = (x[1]^2 + x[2] - 11)^2 + (x[1] + x[2]^2 - 7)^2
-ϵ = 1e-12
+ϵ = 1e-6
 iters = 10000
 
 gd_arm_start = time();
