@@ -5,8 +5,8 @@ include("line_searches.jl");
 
 # function to be optimised
 #f(x) = 0.26 * (x[1]^2 + x[2]^2) - 0.48 * x[1] * x[2] #uncommet for A
-#f(x) = exp(x[1] + 3*x[2] - 0.1) + exp(x[1] - 3*x[2] - 0.1) + exp(-x[1] - 0.1)
-f(x) = (x[1]^2 + x[2] - 11)^2 + (x[1] + x[2]^2 - 7)^2 #uncomment for C
+f(x) = exp(x[1] + 3*x[2] - 0.1) + exp(x[1] - 3*x[2] - 0.1) + exp(-x[1] - 0.1)
+#f(x) = (x[1]^2 + x[2] - 11)^2 + (x[1] + x[2]^2 - 7)^2 #uncomment for C
 
 
 # Calculating first- and second-order derivatives
@@ -51,8 +51,8 @@ gui()
 M = 10001 # 10000 iter + start
 ϵ = 1e-6 # tolerance
 #xstart = [7;3] #uncomment for A
-#xstart = [1;1.5] #uncomment for B
-xstart = [-2;1] #uncomment for C
+xstart = [1;1.5] #uncomment for B
+#xstart = [-2;1] #uncomment for C
 
 n = length(xstart) # dimension of the problem
 

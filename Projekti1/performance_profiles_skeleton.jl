@@ -1,4 +1,5 @@
 using Plots
+#Pkg.add("Plots")
 pyplot()
 
 ## Create a file "solution_methods.jl" and make sure it's in the
@@ -55,7 +56,7 @@ end
 
 srand(1)                 # Control randomness
 k  = 100                 # Number of intances to generate
-n  = 100                 # Dimension of n x n PD matrix A
+n  = 150                 # Dimension of n x n PD matrix A
 δ1 = range(.05,.05, k)   # Moderate condition numbers for matrices A
 δ2 = range(.01,.01, k)   # Larger condition numbers for matrices A
 

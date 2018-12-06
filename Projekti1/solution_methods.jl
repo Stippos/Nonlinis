@@ -32,8 +32,8 @@ function BFGS(g, x0, N, LS, ϵ)
 
     for k = 1:N
         #println(B)
-        gd = inv(B) * ForwardDiff.gradient(g, p)
-
+        gd = -inv(B) * ForwardDiff.gradient(g, p)
+        #println(gd)
         ls_function(lambda) = g(p + lambda * gd);
 
         if LS == NEWTON
@@ -94,7 +94,7 @@ function newton_ls(h, ϵ)
 
     lambda = 1;
 
-    while abs(derivative(h, lambda)) > ϵ
+    while abs(derivative(h, lambda)) > 1e-10
         next_lambda = lambda - derivative(h, lambda)/ second_derivative(h, lambda);
         lambda = next_lambda;
     end;

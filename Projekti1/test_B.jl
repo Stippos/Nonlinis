@@ -4,7 +4,7 @@ using ForwardDiff
 start = [1, 1.5]
 
 g(x) = exp(x[1] + 3*x[2] - 0.1) + exp(x[1] - 3*x[2] - 0.1) + exp(-x[1] - 0.1)
-ϵ = 1e-12
+ϵ = 1e-6
 iters = 10000
 
 gd_arm_start = time();
