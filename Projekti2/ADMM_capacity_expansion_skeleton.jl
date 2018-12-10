@@ -113,7 +113,12 @@ for k = 1:200
 
         #### NOTE: Complete this objective to compute (x,y)-step for the
         ####       current scenario. Compare with Exercise 9.3.
-        @objective(scen_m, Min, (c + v_s[s])'*x + q'*y + ρ/2 * norm(x - z)^2)
+
+        @expression(scen_m, first, sum((c[i] + v_s[i, s]) * x[i] for i in I))
+        @expression(scen_m, second, sum(q[j] * y[j] for j in J))
+        @expression(scen_m, third, ρ/2 * sum((x[i] - z[i])^2 for i in I))
+
+        @objective(scen_m, Min, first + second + third)
 
         #### Solve the (x,y) step for the current scenario
         @suppress solve(scen_m)
