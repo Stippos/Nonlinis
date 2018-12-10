@@ -113,7 +113,7 @@ for k = 1:200
 
         #### NOTE: Complete this objective to compute (x,y)-step for the
         ####       current scenario. Compare with Exercise 9.3.
-        @objective(scen_m, Min,      )
+        @objective(scen_m, Min, (c + v_s[s])'*x + q'*y + ρ/2 * norm(x - z)^2)
 
         #### Solve the (x,y) step for the current scenario
         @suppress solve(scen_m)
@@ -127,7 +127,7 @@ for k = 1:200
     #### NOTE: Complete the computation of the residual for each s.
     ####       Compare with Exercise 9.3.
     @sync @parallel for s in S
-         tol[s] =
+         tol[s] = p[s] * norm(x[s] - z[s])^2
     end
     #### Total residual = sum of subproblem residuals
     tol = sum(tol[s] for s in S)
@@ -141,13 +141,13 @@ for k = 1:200
 
     #### Compute z-step for this iteration
     #### NOTE: Complete the z-step. Compare with Exercise 9.3
-    z =
+    z = x_s * p
 
     #### Update v-step separately for each scenario
     #### NOTE: Complete the v-steps for each scenario s.
     ####       Compare with exercise 9.3
     @sync @parallel for s in S
-        v_s[:,s] =
+        v_s[:,s] = v_s[:,s] + ρ*(x_s[s] - z)
     end
 end
 

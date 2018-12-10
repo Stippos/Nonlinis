@@ -13,6 +13,7 @@ using Clp   #### Use Clp to compare LP solution oF ADMM
 ####                x ≥ 0
 ####
 #### using ADMM. ρ is the penalty parameter.
+
 function ADMM_linprog(c, A, b, ρ)
 
     t_start = time()          # Start timer
@@ -35,7 +36,9 @@ function ADMM_linprog(c, A, b, ρ)
         ####       Compare with Exercise 9.2 to solve the KKT system but here
         ####       in this linear case instead of quadratic one. You don't need
         ####       to store the value of the Lagrangian dual variable v.
-        xv =
+        KKT_matrix = [(eye(n)*ρ) A'; A zeros(m, m)]
+        KKT_vector = -[c - ρ * (z - u); -b]
+        xv = KKT_matrix \ KKT_vector
         x  = xv[1:n]
 
         #### NOTE: Complete this to compute z-step for the current iteration.
@@ -43,19 +46,26 @@ function ADMM_linprog(c, A, b, ρ)
         ####       array z. Before updating z, we store the value of current z in
         ####       a local vector since it's needed when computing dual residual.
         z_old = copy(z)
-        z =
+
+        z = x + u
+
+        for i in 1:length(z)
+                if z[i] < 0
+                        z[i] = 0
+                end
+        end
 
         #### NOTE: Complete this to compute u-step for the current iteration.
         ####       Compare with Exercise 9.2.
-        u =
+        u = u + x - z
 
         #### NOTE: Compute the objective value, the primal residual, and the
         ####       dual residual for the current iteration k. Put the formulas
         ####       for the residuals inside the norm function. Compare with
         ####       exercise 9.2 on how to compute the residuals.
-        objval[k]  =                        # Objective value
-        r_norm[k]  = norm(    )             # Primal residual norm
-        s_norm[k]  = norm(    )             # Dual residual norm
+        objval[k]  = (c' * x)[1]                     # Objective value
+        r_norm[k]  = norm(x - z)             # Primal residual norm
+        s_norm[k]  = ρ * norm(z - z_old)             # Dual residual norm
 
         #### Print progress every 5 iterations
         if k % 5 == 0
