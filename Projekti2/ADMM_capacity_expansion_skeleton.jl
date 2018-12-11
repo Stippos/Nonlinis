@@ -36,21 +36,21 @@ B = 3000                          # Max budget (cost) for capacity acquisition
 ## NOTE:  Use this problem instance and comment over the smaller problem data ##
 ##        when your algorithm works correctly.                                ##
 ##################### PROBLEM DATA FOR LARGER INSTANCE #########################
-# srand(1)                          # Control random number generation
-# nI = 20                           # Number of suppliers
-# nJ = 100                          # Number of clients
-# nS = 3000                         # Number of scenarios
-# I = 1:nI                          # Supplier index set
-# J = 1:nJ                          # Client index set
-# S = 1:nS                          # Scenario index set
+ srand(1)                          # Control random number generation
+ nI = 20                           # Number of suppliers
+ nJ = 100                          # Number of clients
+ nS = 3000                         # Number of scenarios
+ I = 1:nI                          # Supplier index set
+ J = 1:nJ                          # Client index set
+ S = 1:nS                          # Scenario index set
 # #### Generate random data for the problem
-# c = rand(20:100, nI)              # Unit capacity costs of suppliers
-# d = rand(nJ,nS).*rand(10:50, nJ)  # Client demands in all scenarios
-# q = rand(5000:10000, nJ)          # Unit costs of unfulfilled demand
-# p = ones(nS).*1/nS                # Scenario probabilities
-# f = rand(3:45, (nI,nJ))           # Unit costs to fulfil demands
-# b = rand(200:1000, nI)            # Max supplier capacities
-# B = 30000                         # Max budget (cost) for capacity acquisition
+ c = rand(20:100, nI)              # Unit capacity costs of suppliers
+ d = rand(nJ,nS).*rand(10:50, nJ)  # Client demands in all scenarios
+ q = rand(5000:10000, nJ)          # Unit costs of unfulfilled demand
+ p = ones(nS).*1/nS                # Scenario probabilities
+ f = rand(3:45, (nI,nJ))           # Unit costs to fulfil demands
+ b = rand(200:1000, nI)            # Max supplier capacities
+ B = 30000                         # Max budget (cost) for capacity acquisition
 ################################################################################
 
 #### We first solve the problem formulation directly without ADMM
@@ -115,7 +115,7 @@ for k = 1:200
         ####       current scenario. Compare with Exercise 9.3.
 
         @expression(scen_m, first, sum((c[i] + v_s[i, s]) * x[i] for i in I))
-        @expression(scen_m, second, sum(q[j] * y[j] for j in J))
+        @expression(scen_m, second, sum(f[i, j] * y[i, j] + q[j] * u[j] for i in I, j in J))
         @expression(scen_m, third, ρ/2 * sum((x[i] - z[i])^2 for i in I))
 
         @objective(scen_m, Min, first + second + third)
@@ -132,7 +132,7 @@ for k = 1:200
     #### NOTE: Complete the computation of the residual for each s.
     ####       Compare with Exercise 9.3.
     @sync @parallel for s in S
-         tol[s] = p[s] * norm(x[s] - z[s])^2
+         tol[s] = p[s] * norm(x_s[:,s] - z)^2
     end
     #### Total residual = sum of subproblem residuals
     tol = sum(tol[s] for s in S)
@@ -152,7 +152,7 @@ for k = 1:200
     #### NOTE: Complete the v-steps for each scenario s.
     ####       Compare with exercise 9.3
     @sync @parallel for s in S
-        v_s[:,s] = v_s[:,s] + ρ*(x_s[s] - z)
+        v_s[:,s] = v_s[:,s] + ρ*(x_s[:,s] - z)
     end
 end
 
