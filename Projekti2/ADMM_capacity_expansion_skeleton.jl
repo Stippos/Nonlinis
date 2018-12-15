@@ -14,21 +14,21 @@ addprocs()                    ###### Use max number of parallel threads
 ## NOTE:  Use this problem instance to complete the missing parts of the code ##
 ##        to get your ADMM implementation working.                            ##
 ##################### PROBLEM DATA FOR SMALLER INSTANCE ########################
-srand(1)                          # Control random number generation
-nI = 20                           # Number of suppliers
-nJ = 30                           # Number of clients
-nS = 500                          # Number of scenarios
-I = 1:nI                          # Supplier index set
-J = 1:nJ                          # Client index set
-S = 1:nS                          # Scenario index set
+#srand(1)                          # Control random number generation
+#nI = 20                           # Number of suppliers
+#nJ = 30                           # Number of clients
+#nS = 500                          # Number of scenarios
+#I = 1:nI                          # Supplier index set
+#J = 1:nJ                          # Client index set
+#S = 1:nS                          # Scenario index set
 #### Generate random data for the problem
-c = rand(5:20, nI)                # Unit capacity costs of suppliers
-d = rand(nJ,nS).*rand(10:50, nJ)  # Client demands in all scenarios
-q = rand(5000:10000, nJ)          # Unit costs of unfulfilled demand
-p = ones(nS).*1/nS                # Scenario probabilities
-f = rand(3:45, (nI,nJ))           # Unit costs to fulfil demands
-b = rand(20:100, nI)              # Max supplier capacities
-B = 3000                          # Max budget (cost) for capacity acquisition
+#c = rand(5:20, nI)                # Unit capacity costs of suppliers
+#d = rand(nJ,nS).*rand(10:50, nJ)  # Client demands in all scenarios
+#q = rand(5000:10000, nJ)          # Unit costs of unfulfilled demand
+#p = ones(nS).*1/nS                # Scenario probabilities
+#f = rand(3:45, (nI,nJ))           # Unit costs to fulfil demands
+#b = rand(20:100, nI)              # Max supplier capacities
+#B = 3000                          # Max budget (cost) for capacity acquisition
 ################################################################################
 
 

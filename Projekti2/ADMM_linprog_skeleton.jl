@@ -69,8 +69,8 @@ function ADMM_linprog(c, A, b, ρ)
 
         #### Print progress every 5 iterations
         if k % 5 == 0
-            println("iteration: ", k ,"/\tprimal residual: ", round(r_norm[k],4),
-                    "\tdual residual: ", round(s_norm[k],4))
+            #println("iteration: ", k ,"/\tprimal residual: ", round(r_norm[k],4),
+                    #"\tdual residual: ", round(s_norm[k],4))
         end
 
         #### Check stopping condition.
@@ -111,7 +111,7 @@ end
 #### Compare ADMM with Clp on random LP problem instances
 #### NOTE: You can change argument in srand(0) to generate different
 ####       random problem instances (e.g., srand(1))
-srand(0)
+srand(100)
 
 n = 500                # Dimension of x
 m = 400                # Number of equality constraints
@@ -122,7 +122,7 @@ x0 = abs.(randn(n,1))  # Create random solution vector
 A = abs.(randn(m,n))   # Create random, nonnegative matrix A
 b = A*x0               # Create vector b
 
-ρ = 1.0                #### Value of the penalty parameter to use
+ρ = 10             #### Value of the penalty parameter to use
                        #### NOTE: You can try different values of ρ
 
 #### Call both solvers
@@ -135,3 +135,69 @@ println(" Clp solution time: ", sol_time2)
 
 println("\nADMM objective value: ", obj_val1[end])
 println(" Clp objective value: ", obj_val2)
+
+
+j = 50
+iterations = 20
+rhos = linspace(0.2, 2, j)
+results_ADMM = zeros(5, j)
+results_clp = zeros(2, j)
+
+for i = 1:j
+        println(i)
+        n = 500                # Dimension of x
+        m = 400                # Number of equality constraints
+
+        c  = rand(n,1) + 0.5   # Create nonnegative price vector with mean 1
+        x0 = abs.(randn(n,1))  # Create random solution vector
+
+        A = abs.(randn(m,n))   # Create random, nonnegative matrix A
+        b = A*x0               # Create vector b
+
+        ρ = rhos[i]             #### Value of the penalty parameter to use
+                               #### NOTE: You can try different values of ρ
+        result_ADMM = zeros(5)
+        result_clp = 0
+
+        for it = 1:iterations
+                n = 500                # Dimension of x
+                m = 400                # Number of equality constraints
+
+                c  = rand(n,1) + 0.5   # Create nonnegative price vector with mean 1
+                x0 = abs.(randn(n,1))  # Create random solution vector
+
+                A = abs.(randn(m,n))   # Create random, nonnegative matrix A
+                b = A*x0               # Create vector
+                #### Call both solvers
+                (x1, obj_val1, r_norm, s_norm, sol_time1) = ADMM_linprog(c, A, b, ρ)
+                (x2, obj_val2, sol_time2) = linprog(c, A, b)
+
+                result_ADMM += [length(obj_val1), (obj_val1[end]-obj_val2)^2, r_norm[end], s_norm[end], sol_time1]
+                result_clp += sol_time2
+        end
+
+
+        results_ADMM[:,i] = result_ADMM ./ iterations
+        results_clp[:,i] = result_clp / iterations
+end
+
+fig = plot(xlabel = "Penalty term", ylabel = "Time", size = (1200, 800))
+plot!(rhos, results_ADMM[5,:], label = "Time")
+#savefig("rho_time.pdf")
+
+fig = plot(xlabel = "Penalty term", ylabel = "Residual", size = (1200, 800))
+plot!(rhos, results_ADMM[4,:], label = "Dual residual")
+plot!(rhos, results_ADMM[3,:], label = "Primal residual")
+#savefig("residuals.pdf")
+
+fig = plot(xlabel = "Penalty term", ylabel = "Iterations", size = (1200, 800))
+plot!(rhos, results_ADMM[1,:], label = "Average iterations")
+#savefig("iterations.pdf")
+
+fig = plot(xlabel = "Penalty term", ylabel = "Accuracy", size = (1200, 800))
+plot!(rhos, results_ADMM[2,:], label = "Average distance from optimal value")
+#savefig("accuracy.pdf")
+
+plot(rhos, results_ADMM[5,:] ./ results_clp[2,:])
+
+plot(results_clp[1,:])
